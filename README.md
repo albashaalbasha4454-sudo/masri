@@ -1,20 +1,75 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# سوق الكتاب 2026
 
-# Run and deploy your AI Studio app
+تطبيق React/Vite جاهز للتشغيل المحلي والنشر على GitHub Pages.
 
-This contains everything you need to run your app locally.
+## المتطلبات
 
-View your app in AI Studio: https://ai.studio/apps/f8630adb-0510-4779-ac38-3e3cbd18ffa1
+- Node.js 22 أو أحدث
+- مفتاح Gemini API عند استخدام خصائص الذكاء الاصطناعي
 
-## Run Locally
+## التشغيل محلياً
 
-**Prerequisites:**  Node.js
+1. ثبّت الحزم:
 
+```bash
+npm install
+```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+2. انسخ ملف البيئة:
+
+```bash
+cp .env.example .env.local
+```
+
+3. ضع مفتاح Gemini داخل `.env.local`:
+
+```bash
+GEMINI_API_KEY="YOUR_API_KEY"
+```
+
+4. شغّل المشروع:
+
+```bash
+npm run dev
+```
+
+## أوامر المشروع
+
+```bash
+npm run dev      # تشغيل بيئة التطوير
+npm run build    # بناء نسخة الإنتاج
+npm run preview  # معاينة نسخة الإنتاج
+npm run lint     # فحص TypeScript
+```
+
+## النشر على GitHub Pages
+
+تم تجهيز المستودع بملف GitHub Actions للنشر التلقائي:
+
+`.github/workflows/deploy.yml`
+
+عند الدفع إلى فرع `main`، سيقوم GitHub Actions بتثبيت الحزم، بناء المشروع، ثم نشر مجلد `dist` على GitHub Pages.
+
+قبل أول نشر، افتح إعدادات المستودع في GitHub:
+
+1. Settings
+2. Pages
+3. Source: GitHub Actions
+
+إذا كان التطبيق يحتاج مفتاح Gemini أثناء البناء، أضفه من:
+
+Settings → Secrets and variables → Actions → New repository secret
+
+واستخدم الاسم:
+
+```text
+GEMINI_API_KEY
+```
+
+## رابط النشر المتوقع
+
+بعد نجاح النشر، سيكون الرابط غالباً:
+
+```text
+https://albashaalbasha4454-sudo.github.io/masri/
+```
