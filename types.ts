@@ -1,24 +1,40 @@
+export type SectionId =
+  | 'sandwiches'
+  | 'meals'
+  | 'falafel'
+  | 'eastern'
+  | 'grills'
+  | 'western'
+  | 'pots'
+  | 'bakery'
+  | 'extras'
+  | 'needs_section';
+
+export type ProductReviewStatus = 'ok' | 'needs_price' | 'needs_section';
+
 export interface Product {
   id: string;
   name: string;
   type: 'product' | 'service';
   description?: string;
   category?: string;
+  sectionId?: SectionId;
   price: number;
   salePrice?: number;
   discountPercent?: number;
-  cost?: number;
   image?: string;
   availableModifiers?: {name: string, price: number}[];
+  isAvailable?: boolean;
+  reviewStatus?: ProductReviewStatus;
 }
 
 export interface InvoiceItem {
   productId: string;
   productName: string;
-  category?: string; // Department
+  category?: string;
+  sectionId?: SectionId;
   price: number;
   quantity: number;
-  cost?: number;
   discount?: number;
   manualAddition?: number;
   notes?: string;
@@ -42,14 +58,16 @@ export interface User {
   role: 'admin' | 'cashier';
 }
 
+export type SessionUser = Pick<User, 'id' | 'username' | 'role'>;
+
 export type OrderType = 'sale' | 'return' | 'delivery' | 'reservation' | 'dine_in' | 'takeaway';
 export type OrderStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'delivered';
 export type PaymentStatus = 'paid' | 'unpaid' | 'partial';
 
 export interface Invoice {
   id: string;
-  date: string; // ISO string
-  paidDate?: string; // ISO string, set when payment is completed
+  date: string;
+  paidDate?: string;
   items: InvoiceItem[];
   total: number;
   type: OrderType;
@@ -68,27 +86,35 @@ export interface Invoice {
   notes?: string;
 }
 
+export type ExpenseStatus = 'draft' | 'needs_review' | 'completed' | 'cancelled';
+export type ReviewFlag = 'check' | 'question' | null;
 
 export interface Expense {
   id: string;
-  date: string; // ISO string
+  date: string;
   description: string;
-  amount: number;
+  amount?: number;
   category?: string;
-  accountId: string; // The account it was paid from
+  sectionId?: SectionId;
+  accountId?: string;
   notes?: string;
-  processedBy?: string; // The cashier/admin who added it
+  processedBy?: string;
+  status?: ExpenseStatus;
+  reviewFlag?: ReviewFlag;
+  linkedTransactionId?: string;
+  updatedAt?: string;
+  updatedBy?: string;
 }
 
 export interface ReturnRequest {
   id: string;
-  requestDate: string; // ISO string
+  requestDate: string;
   originalInvoiceId: string;
-  requestedBy: string; // username
+  requestedBy: string;
   status: 'pending' | 'approved' | 'rejected';
   items: InvoiceItem[];
-  processedBy?: string; // username
-  processedDate?: string; // ISO string
+  processedBy?: string;
+  processedDate?: string;
 }
 
 export interface FinancialAccount {
@@ -98,10 +124,10 @@ export interface FinancialAccount {
     userId?: string;
 }
 
-export type FinancialTransactionType = 
-    'sale_income' 
-    | 'expense' 
-    | 'capital_deposit' 
+export type FinancialTransactionType =
+    'sale_income'
+    | 'expense'
+    | 'capital_deposit'
     | 'return_refund'
     | 'transfer'
     | 'expense_reversal';
@@ -110,11 +136,12 @@ export interface FinancialTransaction {
     id: string;
     date: string;
     description: string;
-    amount: number; // Always positive
+    amount: number;
     type: FinancialTransactionType;
-    fromAccountId?: string; // Source of funds (for expense, withdrawal, transfer)
-    toAccountId?: string; // Destination of funds (for income, deposit, transfer)
+    fromAccountId?: string;
+    toAccountId?: string;
     relatedInvoiceId?: string;
+    relatedExpenseId?: string;
     category?: string;
 }
 
@@ -126,12 +153,12 @@ export interface Budget {
 
 export interface TillCloseout {
   id: string;
-  date: string; // ISO string for the closing time
+  date: string;
   closedByUserId: string;
   closedByUsername: string;
-  forDate: string; // ISO string YYYY-MM-DD
+  forDate: string;
   totalSales: number;
-  totalReturns: number; // Positive number representing refund amount
+  totalReturns: number;
   totalCashSales?: number;
   totalCardSales?: number;
   totalExpenses?: number;
@@ -146,7 +173,7 @@ export interface ActivityLog {
   id: string;
   userId: string;
   username: string;
-  operation: string; 
+  operation: string;
   description: string;
-  date: string; 
+  date: string;
 }
