@@ -5,7 +5,9 @@ import './style.css';
 import { installExpenseTransactionSync, seedRequiredExpenses } from './expenseSeeds';
 import { seedRequiredProducts } from './productSeeds';
 import { applyUniqueProductImages } from './productImagePatcher';
+import { installUiTextPatcher } from './uiTextPatcher';
 
+installUiTextPatcher();
 installExpenseTransactionSync();
 seedRequiredExpenses();
 seedRequiredProducts();
