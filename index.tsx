@@ -4,10 +4,12 @@ import App from './App';
 import './style.css';
 import { installExpenseTransactionSync, seedRequiredExpenses } from './expenseSeeds';
 import { seedRequiredProducts } from './productSeeds';
+import { applyUniqueProductImages } from './productImagePatcher';
 
 installExpenseTransactionSync();
 seedRequiredExpenses();
 seedRequiredProducts();
+applyUniqueProductImages();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
