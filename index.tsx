@@ -3,9 +3,11 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './style.css';
 import { installExpenseTransactionSync, seedRequiredExpenses } from './expenseSeeds';
+import { seedRequiredProducts } from './productSeeds';
 
 installExpenseTransactionSync();
 seedRequiredExpenses();
+seedRequiredProducts();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
