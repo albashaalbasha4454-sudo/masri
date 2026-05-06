@@ -4,6 +4,7 @@ import App from './App';
 import './style.css';
 import { installExpenseTransactionSync, seedRequiredExpenses } from './expenseSeeds';
 import { seedRequiredProducts } from './productSeeds';
+import { seedDrawerAccountAndCashMovements } from './cashMovementSeeds';
 import { applyUniqueProductImages } from './productImagePatcher';
 import { installUiTextPatcher } from './uiTextPatcher';
 
@@ -11,6 +12,7 @@ installUiTextPatcher();
 installExpenseTransactionSync();
 seedRequiredExpenses();
 seedRequiredProducts();
+seedDrawerAccountAndCashMovements();
 applyUniqueProductImages();
 
 const rootElement = document.getElementById('root');
