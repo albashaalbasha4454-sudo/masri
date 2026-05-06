@@ -20,6 +20,8 @@ export interface Product {
   category?: string;
   sectionId?: SectionId;
   price: number;
+  /** @deprecated Transitional compatibility only. Do not use for accounting or reports. */
+  costPrice?: number;
   salePrice?: number;
   discountPercent?: number;
   image?: string;
