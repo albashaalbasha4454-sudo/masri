@@ -14,6 +14,15 @@ const requiredCashMovements: FinancialTransaction[] = [
     category: 'قسم الفلافل / غلة مبيعات 30-4',
   },
   {
+    id: 'required-cash-falafel-sales-2026-05-01',
+    date: new Date('2026-05-01T21:00:00+03:00').toISOString(),
+    description: 'غلة مبيعات قسم الفلافل ليوم 1/5 - مبيعات مفصلة مع بنود تحتاج مراجعة',
+    amount: 1242000,
+    type: 'sale_income',
+    toAccountId: DRAWER_ACCOUNT_ID,
+    category: 'قسم الفلافل / غلة مبيعات 1-5',
+  },
+  {
     id: 'required-admin-payment-to-falafel-manager-2026-04-30',
     date: new Date('2026-04-30T21:05:00+03:00').toISOString(),
     description: 'دفعة من الإدارة إلى مسؤول قسم الفلافل - 100 دولار بسعر 13,250 - عهدة مسؤول القسم وليست درج المحل',
