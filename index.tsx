@@ -8,10 +8,12 @@ import { seedDrawerAccountAndCashMovements } from './cashMovementSeeds';
 import { applyUniqueProductImages } from './productImagePatcher';
 import { installUiTextPatcher } from './uiTextPatcher';
 import { installDataBridge, syncAllBusinessData } from './dataBridge';
+import { installProfessionalReportExportPatcher } from './reportExportPatcher';
 
 installUiTextPatcher();
 installExpenseTransactionSync();
 installDataBridge();
+installProfessionalReportExportPatcher();
 seedRequiredExpenses();
 seedRequiredProducts();
 seedDrawerAccountAndCashMovements();
