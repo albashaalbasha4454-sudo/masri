@@ -1,26 +1,26 @@
 import type { FinancialAccount, FinancialTransaction } from './types';
 
 const DRAWER_ACCOUNT_ID = 'cash-default';
-const EXCHANGE_RATE = 13250;
+const FALAFEL_CUSTODY_ACCOUNT_ID = 'falafel-manager-custody';
 
 const requiredCashMovements: FinancialTransaction[] = [
   {
     id: 'required-cash-falafel-sales-2026-04-30',
     date: new Date('2026-04-30T21:00:00+03:00').toISOString(),
-    description: 'غلة مبيعات قسم الفلافل ليوم 30/4 - مجموع المبيعات النقدية فقط',
+    description: 'غلة مبيعات قسم الفلافل ليوم 30/4 - مجموع المبيعات النقدية فقط - دخلت إلى درج المحل',
     amount: 258000,
     type: 'sale_income',
     toAccountId: DRAWER_ACCOUNT_ID,
-    category: 'الفلافل',
+    category: 'قسم الفلافل / غلة مبيعات 30-4',
   },
   {
-    id: 'required-cash-admin-funding-2026-04-30',
+    id: 'required-admin-payment-to-falafel-manager-2026-04-30',
     date: new Date('2026-04-30T21:05:00+03:00').toISOString(),
-    description: 'تمويل من الإدارة إلى درج المحل - 100 دولار بسعر 13,250',
+    description: 'دفعة من الإدارة إلى مسؤول قسم الفلافل - 100 دولار بسعر 13,250 - عهدة مسؤول القسم وليست درج المحل',
     amount: 1325000,
     type: 'capital_deposit',
-    toAccountId: DRAWER_ACCOUNT_ID,
-    category: 'تمويل الإدارة',
+    toAccountId: FALAFEL_CUSTODY_ACCOUNT_ID,
+    category: 'قسم الفلافل / عهدة مسؤول القسم',
   },
 ];
 
@@ -41,24 +41,31 @@ export function seedDrawerAccountAndCashMovements() {
   if (typeof window === 'undefined') return;
 
   const accounts = readJson<FinancialAccount[]>('accounts', []);
-  const nextAccounts = accounts.map(account => (
-    account.id === DRAWER_ACCOUNT_ID
-      ? { ...account, name: 'درج المحل (الخزينة الرئيسية)' }
-      : account
-  ));
+  const byAccountId = new Map(accounts.map(account => [account.id, account]));
 
-  if (!nextAccounts.some(account => account.id === DRAWER_ACCOUNT_ID)) {
-    nextAccounts.push({ id: DRAWER_ACCOUNT_ID, name: 'درج المحل (الخزينة الرئيسية)', type: 'cash' });
-  }
-  writeJson('accounts', nextAccounts);
+  byAccountId.set(DRAWER_ACCOUNT_ID, {
+    ...(byAccountId.get(DRAWER_ACCOUNT_ID) || { id: DRAWER_ACCOUNT_ID, type: 'cash' as const }),
+    id: DRAWER_ACCOUNT_ID,
+    name: 'درج المحل (الخزينة الرئيسية)',
+    type: 'cash',
+  });
+
+  byAccountId.set(FALAFEL_CUSTODY_ACCOUNT_ID, {
+    ...(byAccountId.get(FALAFEL_CUSTODY_ACCOUNT_ID) || { id: FALAFEL_CUSTODY_ACCOUNT_ID, type: 'cash' as const }),
+    id: FALAFEL_CUSTODY_ACCOUNT_ID,
+    name: 'عهدة مسؤول قسم الفلافل',
+    type: 'cash',
+  });
+
+  writeJson('accounts', Array.from(byAccountId.values()));
 
   const transactions = readJson<FinancialTransaction[]>('financialTransactions', []);
   const byId = new Map(transactions.map(tx => [tx.id, tx]));
 
+  byId.delete('required-cash-admin-funding-2026-04-30');
+
   requiredCashMovements.forEach(tx => {
-    if (!byId.has(tx.id)) {
-      byId.set(tx.id, tx);
-    }
+    byId.set(tx.id, tx);
   });
 
   writeJson('financialTransactions', Array.from(byId.values()));
