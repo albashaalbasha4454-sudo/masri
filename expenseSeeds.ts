@@ -54,6 +54,8 @@ const requiredExpenses: RequiredExpenseSeed[] = [
   { id: 'bakery-sumac-soft', description: 'سماق ناعم', amount: 90000, category: 'الفرن' },
   { id: 'bakery-sugar-1', description: 'سكر عدد 1', amount: 424500, category: 'الفرن' },
   { id: 'grills-meat-fat-2026-05-01', description: 'لحم ودهن', amount: 100000, category: 'قسم المشويات', notes: '✔ يجب المراجعة', date: MAY_1_DATE },
+  { id: 'grills-inquiries-2026-05-01', description: 'استفسامات', amount: 100000, category: 'قسم المشويات', notes: '❓ يجب المراجعة', date: MAY_1_DATE },
+  { id: 'grills-shish-2026-05-01', description: 'شيش', amount: 150000, category: 'قسم المشويات', date: MAY_1_DATE },
 ];
 
 const expenseId = (seed: RequiredExpenseSeed) => `required-exp-${seed.id}`;
