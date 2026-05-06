@@ -1,4 +1,4 @@
-import type { Expense, FinancialTransaction } from './types';
+import type { Expense, FinancialTransaction, Invoice } from './types';
 
 type RequiredExpenseSeed = {
   id: string;
@@ -23,7 +23,6 @@ const requiredExpenses: RequiredExpenseSeed[] = [
   { id: 'falafel-bread', description: 'خبز عادي + خبز سياحي', amount: 110000, category: 'الفلافل' },
   { id: 'falafel-potatoes-20kg', description: 'بطاطا 20 كيلو', amount: 160000, category: 'الفلافل' },
   { id: 'falafel-samoon-mashrouh', description: 'سمون + مشروح', amount: 0, category: 'الفلافل', notes: '❓ يحتاج مراجعة: القيمة غير معروفة' },
-
   { id: 'bakery-cinnamon-2kg', description: 'قرفة 2 كيلو', amount: 46000, category: 'الفرن', notes: '✔ يحتاج مراجعة' },
   { id: 'bakery-flour-5', description: 'طحين عدد 5', amount: 1375000, category: 'الفرن' },
   { id: 'bakery-oil-tin-1', description: 'تنكة زيت عدد 1', amount: 450000, category: 'الفرن' },
@@ -82,6 +81,32 @@ const toTransaction = (expense: Expense): FinancialTransaction => ({
   relatedExpenseId: expense.id,
 });
 
+const manualInvoiceId = (tx: FinancialTransaction) => `manual-inv-${tx.id}`;
+
+const toManualSalesInvoice = (tx: FinancialTransaction): Invoice => ({
+  id: manualInvoiceId(tx),
+  date: tx.date,
+  type: 'sale',
+  items: [{
+    productId: `manual-sales-${tx.id}`,
+    productName: tx.description || 'غلة مبيعات يدوية',
+    category: tx.category || 'غلة مبيعات يدوية',
+    price: tx.amount,
+    quantity: 1,
+    discount: 0,
+    manualAddition: 0,
+    notes: 'فاتورة مختصرة مولدة من حركة الخزينة لربط الغلة بالفواتير والتقارير.',
+  }],
+  total: tx.amount,
+  customerInfo: { name: 'غلة يدوية / درج المحل', phone: '', address: '' },
+  notes: `مولدة من حركة خزينة: ${tx.description}`,
+  status: 'completed',
+  paymentStatus: 'paid',
+  paidDate: tx.date,
+  processedBy: 'admin',
+  paymentMethod: 'cash',
+});
+
 function readJson<T>(key: string, fallback: T): T {
   try {
     const raw = window.localStorage.getItem(key);
@@ -95,6 +120,29 @@ function writeJson(key: string, value: unknown) {
   window.localStorage.setItem(key, JSON.stringify(value));
 }
 
+function syncManualSalesInvoicesFromTransactions(nativeSetItem?: (key: string, value: string) => void) {
+  const transactions = readJson<FinancialTransaction[]>('financialTransactions', []);
+  const invoices = readJson<Invoice[]>('invoices', []);
+  const byInvoiceId = new Map(invoices.map(invoice => [invoice.id, invoice]));
+  let changed = false;
+
+  transactions.forEach(tx => {
+    if (tx.type !== 'sale_income' || tx.relatedInvoiceId || tx.amount <= 0) return;
+    const invoice = toManualSalesInvoice(tx);
+    const old = byInvoiceId.get(invoice.id);
+    if (!old || old.total !== invoice.total || old.date !== invoice.date || old.items[0]?.productName !== invoice.items[0]?.productName || old.items[0]?.category !== invoice.items[0]?.category) {
+      byInvoiceId.set(invoice.id, invoice);
+      changed = true;
+    }
+  });
+
+  if (changed) {
+    const payload = JSON.stringify(Array.from(byInvoiceId.values()));
+    if (nativeSetItem) nativeSetItem('invoices', payload);
+    else window.localStorage.setItem('invoices', payload);
+  }
+}
+
 export function seedRequiredExpenses() {
   if (typeof window === 'undefined') return;
 
@@ -102,8 +150,7 @@ export function seedRequiredExpenses() {
   const byId = new Map(currentExpenses.map(exp => [exp.id, exp]));
 
   requiredExpenses.forEach(seed => {
-    const id = expenseId(seed);
-    byId.set(id, toExpense(seed));
+    byId.set(expenseId(seed), toExpense(seed));
   });
 
   const nextExpenses = Array.from(byId.values());
@@ -111,11 +158,10 @@ export function seedRequiredExpenses() {
 
   const currentTransactions = readJson<FinancialTransaction[]>('financialTransactions', []);
   const nonSeedTransactions = currentTransactions.filter(tx => !tx.id.startsWith('required-tx-'));
-  const seedTransactions = nextExpenses
-    .filter(exp => exp.id.startsWith('required-exp-'))
-    .map(toTransaction);
+  const seedTransactions = nextExpenses.filter(exp => exp.id.startsWith('required-exp-')).map(toTransaction);
 
   writeJson('financialTransactions', [...nonSeedTransactions, ...seedTransactions]);
+  syncManualSalesInvoicesFromTransactions();
 }
 
 export function installExpenseTransactionSync() {
@@ -125,6 +171,11 @@ export function installExpenseTransactionSync() {
 
   window.localStorage.setItem = (key: string, value: string) => {
     nativeSetItem(key, value);
+
+    if (key === 'financialTransactions') {
+      syncManualSalesInvoicesFromTransactions(nativeSetItem);
+      return;
+    }
 
     if (key !== 'expenses') return;
 
@@ -150,8 +201,11 @@ export function installExpenseTransactionSync() {
       });
 
       nativeSetItem('financialTransactions', JSON.stringify([...untouchedTransactions, ...syncedExpenseTransactions]));
+      syncManualSalesInvoicesFromTransactions(nativeSetItem);
     } catch {
       // Keep the app running even if stored data is malformed.
     }
   };
+
+  syncManualSalesInvoicesFromTransactions(nativeSetItem);
 }
