@@ -7,12 +7,15 @@ import { seedRequiredProducts } from './productSeeds';
 import { seedDrawerAccountAndCashMovements } from './cashMovementSeeds';
 import { applyUniqueProductImages } from './productImagePatcher';
 import { installUiTextPatcher } from './uiTextPatcher';
+import { installDataBridge, syncAllBusinessData } from './dataBridge';
 
 installUiTextPatcher();
 installExpenseTransactionSync();
+installDataBridge();
 seedRequiredExpenses();
 seedRequiredProducts();
 seedDrawerAccountAndCashMovements();
+syncAllBusinessData();
 applyUniqueProductImages();
 
 const rootElement = document.getElementById('root');
