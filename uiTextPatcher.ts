@@ -73,33 +73,63 @@ const textMap: Record<string, string> = {
 
 const normalize = (value: string | null | undefined) => (value || '').trim();
 
-export function installUiTextPatcher() {
-  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+let installed = false;
+let scheduled = false;
 
-  const patch = () => {
-    document.querySelectorAll<HTMLElement>('.material-symbols-outlined').forEach(el => {
-      const key = normalize(el.dataset.iconKey || el.textContent);
-      if (!key) return;
-      const icon = iconMap[key];
-      if (!icon) return;
-      el.dataset.iconKey = key;
+const patchIcons = () => {
+  document.querySelectorAll<HTMLElement>('.material-symbols-outlined').forEach(el => {
+    const current = normalize(el.textContent);
+    const key = normalize(el.dataset.iconKey || current);
+    const icon = iconMap[key];
+    if (!icon) return;
+
+    el.dataset.iconKey = key;
+    el.setAttribute('aria-hidden', 'true');
+    el.classList.add('app-emoji-icon');
+
+    if (current !== icon) {
       el.textContent = icon;
-      el.classList.add('app-emoji-icon');
-    });
+    }
+  });
+};
 
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-    const nodes: Text[] = [];
-    while (walker.nextNode()) nodes.push(walker.currentNode as Text);
+const patchTextNodes = () => {
+  if (!document.body) return;
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  const nodes: Text[] = [];
 
-    nodes.forEach(node => {
-      const key = normalize(node.nodeValue);
-      if (textMap[key]) node.nodeValue = textMap[key];
-    });
-  };
+  while (walker.nextNode()) {
+    nodes.push(walker.currentNode as Text);
+  }
 
-  const observer = new MutationObserver(() => patch());
+  nodes.forEach(node => {
+    const key = normalize(node.nodeValue);
+    const replacement = textMap[key];
+    if (replacement && node.nodeValue !== replacement) {
+      node.nodeValue = replacement;
+    }
+  });
+};
+
+const patch = () => {
+  scheduled = false;
+  patchIcons();
+  patchTextNodes();
+};
+
+const schedulePatch = () => {
+  if (scheduled) return;
+  scheduled = true;
+  window.requestAnimationFrame(patch);
+};
+
+export function installUiTextPatcher() {
+  if (installed || typeof window === 'undefined' || typeof document === 'undefined') return;
+  installed = true;
+
   const start = () => {
     patch();
+    const observer = new MutationObserver(schedulePatch);
     observer.observe(document.body, { childList: true, subtree: true, characterData: true });
   };
 
