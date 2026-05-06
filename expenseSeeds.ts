@@ -6,9 +6,11 @@ type RequiredExpenseSeed = {
   amount: number;
   category: string;
   notes?: string;
+  date?: string;
 };
 
 const SEED_DATE = new Date('2026-04-30T12:00:00+03:00').toISOString();
+const MAY_1_DATE = new Date('2026-05-01T12:00:00+03:00').toISOString();
 
 const requiredExpenses: RequiredExpenseSeed[] = [
   { id: 'falafel-pickle', description: 'مخلل', amount: 820000, category: 'الفلافل' },
@@ -51,6 +53,7 @@ const requiredExpenses: RequiredExpenseSeed[] = [
   { id: 'bakery-pepper-molasses-half-kg', description: 'دبس فلفل نصف كيلو', amount: 17500, category: 'الفرن' },
   { id: 'bakery-sumac-soft', description: 'سماق ناعم', amount: 90000, category: 'الفرن' },
   { id: 'bakery-sugar-1', description: 'سكر عدد 1', amount: 424500, category: 'الفرن' },
+  { id: 'grills-meat-fat-2026-05-01', description: 'لحم ودهن', amount: 100000, category: 'قسم المشويات', notes: '✔ يجب المراجعة', date: MAY_1_DATE },
 ];
 
 const expenseId = (seed: RequiredExpenseSeed) => `required-exp-${seed.id}`;
@@ -58,14 +61,14 @@ const transactionId = (seed: RequiredExpenseSeed) => `required-tx-${seed.id}`;
 
 const toExpense = (seed: RequiredExpenseSeed): Expense => ({
   id: expenseId(seed),
-  date: SEED_DATE,
+  date: seed.date || SEED_DATE,
   description: seed.description,
   amount: seed.amount,
   category: seed.category,
   accountId: 'cash-default',
   processedBy: 'admin',
   notes: seed.notes || 'مسجل بتاريخ 30/4',
-  status: seed.amount > 0 ? (seed.notes?.includes('يحتاج مراجعة') ? 'needs_review' : 'completed') : 'needs_review',
+  status: seed.amount > 0 ? (seed.notes?.includes('مراجعة') ? 'needs_review' : 'completed') : 'needs_review',
   reviewFlag: seed.notes?.includes('❓') ? 'question' : seed.notes?.includes('✔') ? 'check' : null,
   linkedTransactionId: transactionId(seed),
 });
