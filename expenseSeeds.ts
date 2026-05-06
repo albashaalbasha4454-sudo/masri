@@ -8,7 +8,7 @@ type RequiredExpenseSeed = {
   notes?: string;
 };
 
-const SEED_DATE = new Date('2026-05-01T00:00:00Z').toISOString();
+const SEED_DATE = new Date('2026-04-30T12:00:00+03:00').toISOString();
 
 const requiredExpenses: RequiredExpenseSeed[] = [
   { id: 'falafel-pickle', description: 'مخلل', amount: 820000, category: 'الفلافل' },
@@ -65,7 +65,7 @@ const toExpense = (seed: RequiredExpenseSeed): Expense => ({
   category: seed.category,
   accountId: 'cash-default',
   processedBy: 'admin',
-  notes: seed.notes || 'مسجل',
+  notes: seed.notes || 'مسجل بتاريخ 30/4',
   status: seed.amount > 0 ? (seed.notes?.includes('يحتاج مراجعة') ? 'needs_review' : 'completed') : 'needs_review',
   reviewFlag: seed.notes?.includes('❓') ? 'question' : seed.notes?.includes('✔') ? 'check' : null,
   linkedTransactionId: transactionId(seed),
@@ -103,9 +103,7 @@ export function seedRequiredExpenses() {
 
   requiredExpenses.forEach(seed => {
     const id = expenseId(seed);
-    if (!byId.has(id)) {
-      byId.set(id, toExpense(seed));
-    }
+    byId.set(id, toExpense(seed));
   });
 
   const nextExpenses = Array.from(byId.values());
