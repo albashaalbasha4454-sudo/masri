@@ -9,6 +9,15 @@ const isRevenueInvoice = (invoice: Invoice) => {
 
 const dateOnly = (value?: string) => value ? new Date(value).toISOString().slice(0, 10) : '';
 
+const readStoredTransactions = (): FinancialTransaction[] => {
+  try {
+    const raw = window.localStorage.getItem('financialTransactions');
+    return raw ? JSON.parse(raw) as FinancialTransaction[] : [];
+  } catch {
+    return [];
+  }
+};
+
 const StatCard = ({ title, value, note, tone }: { title: string; value: string; note: string; tone: 'green' | 'red' | 'blue' | 'amber' | 'slate' }) => {
   const styles = {
     green: 'bg-emerald-50 border-emerald-100 text-emerald-800',
@@ -32,8 +41,12 @@ const DashboardView: React.FC<{
   expenses: Expense[];
   customers: Customer[];
   transactions?: FinancialTransaction[];
-}> = ({ invoices, products, expenses, customers, transactions = [] }) => {
-  const [dateRange, setDateRange] = useState<'all' | 'today' | '30-4'>('all');
+}> = ({ invoices, products, expenses, customers, transactions }) => {
+  const [dateRange, setDateRange] = useState<'all' | 'today' | '30-4'>('30-4');
+
+  const effectiveTransactions = useMemo(() => {
+    return transactions && transactions.length > 0 ? transactions : readStoredTransactions();
+  }, [transactions]);
 
   const data = useMemo(() => {
     const filterDate = (value?: string) => {
@@ -47,13 +60,13 @@ const DashboardView: React.FC<{
     const invoiceSalesTotal = invoiceSales.reduce((sum, inv) => sum + inv.total, 0);
     const returnsTotal = invoices.filter(inv => inv.type === 'return' && filterDate(inv.date)).reduce((sum, inv) => sum + Math.abs(inv.total), 0);
 
-    const manualSales = transactions.filter(tx => tx.type === 'sale_income' && filterDate(tx.date));
+    const manualSales = effectiveTransactions.filter(tx => tx.type === 'sale_income' && filterDate(tx.date));
     const manualSalesTotal = manualSales.reduce((sum, tx) => sum + tx.amount, 0);
 
     const expenseRows = expenses.filter(exp => filterDate(exp.date) && exp.status !== 'draft' && exp.status !== 'cancelled');
     const expensesTotal = expenseRows.reduce((sum, exp) => sum + (exp.amount || 0), 0);
 
-    const custodyRows = transactions.filter(tx => tx.type === 'capital_deposit' && (tx.category?.includes('عهدة') || tx.description.includes('مسؤول قسم')) && filterDate(tx.date));
+    const custodyRows = effectiveTransactions.filter(tx => tx.type === 'capital_deposit' && (tx.category?.includes('عهدة') || tx.description.includes('مسؤول قسم')) && filterDate(tx.date));
     const custodyTotal = custodyRows.reduce((sum, tx) => sum + tx.amount, 0);
 
     const salesTotal = invoiceSalesTotal + manualSalesTotal - returnsTotal;
@@ -71,7 +84,7 @@ const DashboardView: React.FC<{
       manualSalesBySection.set(key, (manualSalesBySection.get(key) || 0) + tx.amount);
     });
 
-    const recent = [...transactions]
+    const recent = [...effectiveTransactions]
       .filter(tx => filterDate(tx.date))
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 12);
@@ -91,7 +104,7 @@ const DashboardView: React.FC<{
       productsCount: products.length,
       customersCount: customers.length,
     };
-  }, [invoices, expenses, transactions, products.length, customers.length, dateRange]);
+  }, [invoices, expenses, effectiveTransactions, products.length, customers.length, dateRange]);
 
   const rangeLabel = dateRange === 'all' ? 'كل البيانات' : dateRange === 'today' ? 'اليوم' : '30/4 فقط';
 
