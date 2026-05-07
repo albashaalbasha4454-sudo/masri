@@ -6,11 +6,13 @@ import { installUiTextPatcher } from './uiTextPatcher';
 import { installProfessionalReportExportPatcher } from './reportExportPatcher';
 import { installCleanSetupPatcher } from './cleanSetupPatcher';
 import { installPosAdditionPatcher } from './posAdditionPatcher';
+import { installAccountingAuditButton } from './accountingAudit';
 
 installUiTextPatcher();
 installProfessionalReportExportPatcher();
 installCleanSetupPatcher();
 installPosAdditionPatcher();
+installAccountingAuditButton();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
