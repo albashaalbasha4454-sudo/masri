@@ -4,9 +4,13 @@ import UnifiedApp from './UnifiedApp';
 import './style.css';
 import { installUiTextPatcher } from './uiTextPatcher';
 import { installProfessionalReportExportPatcher } from './reportExportPatcher';
+import { installCleanSetupPatcher } from './cleanSetupPatcher';
+import { installPosAdditionPatcher } from './posAdditionPatcher';
 
 installUiTextPatcher();
 installProfessionalReportExportPatcher();
+installCleanSetupPatcher();
+installPosAdditionPatcher();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
